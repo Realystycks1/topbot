@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>1WIN SIGNALS FINAL V8</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-dark: #0f192b;
+        --panel-bg: #1c283d;
+        --blue-1win: #0099ff;
+        --pink-1win: #f53b7b;
+        --text-white: #ffffff;
+        --text-gray: #8e9aab;
+        --radius: 20px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+    ::-webkit-scrollbar { display: none; }
+    body { -ms-overflow-style: none; scrollbar-width: none; background-color: var(--bg-dark); font-family: 'Montserrat', sans-serif; color: var(--text-white); height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; position: relative; }
+
+    /* ФОН */
+    .bg-logos {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50' viewBox='0 0 100 50'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-style='italic' font-size='20' fill='rgba(255,255,255,0.03)' text-anchor='middle' dominant-baseline='middle'%3E1WIN%3C/text%3E%3C/svg%3E");
+        background-size: 100px 50px; background-repeat: repeat;
+    }
+
+    /* HEADER */
+    .header {
+        width: 100%; max-width: 500px; padding: 15px 20px; display: flex; justify-content: center; align-items: center;
+        z-index: 10; background: rgba(15, 25, 43, 0.95); backdrop-filter: blur(10px); flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .logo { font-weight: 900; font-style: italic; font-size: 24px; letter-spacing: -1px; }
+    .logo span { color: var(--blue-1win); }
+
+    /* SCREENS */
+    .screens-container { width: 100%; flex: 1; overflow-y: auto; padding-bottom: 100px; display: flex; flex-direction: column; align-items: center; }
+    .screen { width: 100%; max-width: 500px; padding: 0 20px; display: none; animation: fadeUp 0.3s ease-out; }
+    .screen.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ВВОД ID */
+    .id-section {
+        background: rgba(15, 25, 43, 0.8);
+        border: 1px solid var(--blue-1win);
+        border-radius: 15px;
+        padding: 15px;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    .id-label {
+        font-size: 12px; color: var(--blue-1win); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .id-input {
+        width: 100%; padding: 14px;
+        background: rgba(0,0,0,0.3);
+        border: 2px solid #333;
+        border-radius: 12px;
+        color: white; font-size: 20px; font-family: monospace; text-align: center;
+        outline: none; transition: 0.3s;
+    }
+    .id-input:focus { border-color: var(--blue-1win); box-shadow: 0 0 10px rgba(0, 153, 255, 0.2); }
+    .id-input.error { border-color: var(--pink-1win); animation: shake 0.3s; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    /* КНОПКА СМЕНЫ ID */
+    .change-id-btn {
+        background: transparent; border: 1px solid var(--text-gray); color: var(--text-gray);
+        font-size: 10px; padding: 4px 8px; border-radius: 6px; margin-left: 10px;
+        cursor: pointer; font-family: 'Montserrat', sans-serif; text-transform: uppercase;
+    }
+    .change-id-btn:active { background: rgba(255,255,255,0.1); }
+
+    /* --- МОДАЛЬНОЕ ОКНО ОБЩЕЕ --- */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.95); z-index: 9999;
+        display: none; align-items: center; justify-content: center;
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.2s;
+    }
+    .modal-box {
+        width: 90%; max-width: 340px;
+        background: #1c283d;
+        border: 2px solid var(--blue-1win);
+        border-radius: 20px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 0 50px rgba(0, 153, 255, 0.3);
+        transform: scale(0.9);
+        animation: popIn 0.2s forwards;
+    }
+    .modal-title { font-size: 22px; font-weight: 900; color: white; margin-bottom: 10px; font-style: italic; }
+    .modal-desc { font-size: 14px; color: #ccc; margin-bottom: 25px; line-height: 1.5; font-weight: 500; }
+    
+    /* СТИЛИ ДЛЯ СТАРТОВОГО ВАЖНОГО ОКНА */
+    .warning-big {
+        color: var(--pink-1win);
+        font-size: 26px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+        line-height: 1.1;
+        text-shadow: 0 0 20px rgba(245, 59, 123, 0.5);
+    }
+    .warning-desc {
+        font-size: 15px;
+        color: white;
+        margin-bottom: 20px;
+        line-height: 1.4;
+    }
+    
+    /* ГАЛОЧКА (CHECKBOX) */
+    .checkbox-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        background: rgba(0,0,0,0.3);
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255,255,255,0.1);
+        text-align: left;
+    }
+    .custom-checkbox {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        accent-color: var(--blue-1win);
+        cursor: pointer;
+        margin-top: 2px;
+    }
+    .checkbox-label {
+        font-size: 12px;
+        color: var(--text-white);
+        font-weight: 700;
+        cursor: pointer;
+        line-height: 1.3;
+    }
+
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn {
+        flex: 1; padding: 14px; border-radius: 12px; border: none;
+        font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase;
+        transition: 0.3s;
+    }
+    .btn-cancel { background: #2c3e50; color: #fff; }
+    .btn-confirm { background: linear-gradient(90deg, #f53b7b, #d6306d); color: white; box-shadow: 0 5px 15px rgba(245, 59, 123, 0.4); }
+    
+    .btn-start-disabled {
+        background: #444; color: #888; cursor: not-allowed; box-shadow: none;
+    }
+    .btn-start-active {
+        background: linear-gradient(90deg, #0099ff, #0066cc); color: white;
+        box-shadow: 0 0 20px rgba(0, 153, 255, 0.4);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* CARDS */
+    .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+    .game-card {
+        background: var(--panel-bg); border-radius: var(--radius); padding: 15px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        height: 130px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;
+        transition: transform 0.1s, border-color 0.2s; position: relative; overflow: hidden;
+    }
+    .game-card:active { transform: scale(0.96); background: rgba(255,255,255,0.05); }
+    .g-icon { font-size: 36px; margin-bottom: 8px; z-index: 2; }
+    .g-title { font-weight: 700; font-size: 11px; text-transform: uppercase; z-index: 2; text-align: center; }
+
+    /* GAME UI */
+    .game-ui { background: var(--panel-bg); border-radius: 25px; padding: 20px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    
+    .main-btn {
+        background: linear-gradient(90deg, #0099ff, #0066cc); color: white; border: none;
+        width: 100%; padding: 16px; border-radius: 15px; font-weight: 800; font-size: 16px;
+        text-transform: uppercase; margin-top: 10px; cursor: pointer;
+        box-shadow: 0 5px 20px rgba(0, 153, 255, 0.4); transition: 0.2s;
+    }
+    .main-btn:disabled { display: none; }
+    .main-btn:active:not(:disabled) { transform: scale(0.98); opacity: 0.9; }
+
+    /* LOADER */
+    .loader-container { display: none; justify-content: center; align-items: center; margin-top: 20px; height: 50px; }
+    .spinner { width: 30px; height: 30px; border: 3px solid rgba(255, 255, 255, 0.1); border-left-color: var(--blue-1win); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .status-text { text-align: center; font-size: 12px; color: var(--text-gray); margin-top: 15px; height: 20px; font-family: monospace; }
+
+    /* MINES */
+    .mines-options { display: flex; gap: 5px; margin-bottom: 15px; background: #0f192b; padding: 5px; border-radius: 12px; }
+    .mine-btn { flex: 1; background: transparent; border: none; color: var(--text-gray); padding: 8px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+    .mine-btn.active { background: var(--blue-1win); color: white; }
+    .mines-wrapper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; background: #0b1221; padding: 8px; border-radius: 15px; }
+    .mine-cell { aspect-ratio: 1; background: #152033; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+    .mine-cell.safe { background: linear-gradient(135deg, #1c283d, #1c283d); border: 2px solid #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+    .star-icon { font-size: 20px; animation: popStar 0.4s; }
+
+    /* TOWER RUSH */
+    .tower-wrapper {
+        height: 420px;
+        background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+        border: 2px solid #333; border-radius: 15px; position: relative; overflow: hidden;
+        display: flex; flex-direction: column-reverse; align-items: center; padding-bottom: 0px;
+    }
+    .tower-ground { width: 100%; height: 10px; background: #1a1a1a; border-top: 2px solid #444; z-index: 10; flex-shrink: 0; }
+    .tower-floor { width: 140px; height: 70px; position: relative; z-index: 1; animation: dropFloor 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .windows { position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .win { background: #444; border-radius: 2px; width: 100%; height: 100%; }
+    .win.lit { background: #f1c40f; box-shadow: 0 0 8px #f1c40f; }
+    .style-concrete { background: #7f8c8d; border-left: 5px solid #95a5a6; border-right: 5px solid #34495e; border-top: 2px solid #bdc3c7; }
+    .style-brick { background: #c0392b; border-left: 5px solid #e74c3c; border-right: 5px solid #922b21; border-top: 2px solid #d98880; }
+    .style-tech { background: #2980b9; border-left: 5px solid #3498db; border-right: 5px solid #1a5276; border-top: 2px solid #5dade2; }
+    .tower-roof { width: 150px; height: 35px; background: #2c3e50; border-radius: 10px 10px 0 0; margin-bottom: -5px; z-index: 2; position: relative; animation: dropFloor 0.3s ease-out; }
+    .tower-roof::after { content: ''; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 4px; height: 20px; background: red; border-radius: 2px; }
+    .tower-result { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 56px; font-weight: 900; color: white; text-shadow: 0 0 20px rgba(0,0,0,0.8); z-index: 20; display: none; }
+
+    /* Lucky Jet */
+    .lucky-wrapper { height: 200px; background: #0b0b15; border-radius: 15px; position: relative; overflow: hidden; border: 1px solid #333; display: flex; align-items: center; justify-content: center; }
+    .star-field { position: absolute; width: 100%; height: 200%; top: -100%; left: 0; background-image: radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)), radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)); background-repeat: repeat; background-size: 200px 200px; animation: flyStars 3s linear infinite; opacity: 0.5; }
+    .jet-container { position: absolute; bottom: 20px; left: 20px; display: flex; align-items: center; transition: all 0.5s linear; z-index: 5; }
+    .joe { font-size: 40px; z-index: 2; transform: rotate(-5deg); }
+    .jet-trail { position: absolute; left: -15px; bottom: 5px; width: 40px; height: 10px; background: linear-gradient(90deg, transparent, #ff5500, #ffcc00); filter: blur(4px); transform-origin: right; animation: trailPulse 0.2s infinite alternate; z-index: 1; border-radius: 50%; }
+    .multiplier { position: absolute; z-index: 10; font-size: 42px; font-weight: 900; color: white; }
+
+    /* Penalty & Coin */
+    .penalty-wrapper { position: relative; height: 220px; background: linear-gradient(to bottom, #2b5624, #3a7530); border: 3px solid rgba(255,255,255,0.8); border-bottom: none; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+    .net { position: absolute; top: 5px; left: 5px; right: 5px; bottom: 0; border: 1px solid rgba(255,255,255,0.3); border-bottom: none; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0, rgba(255,255,255,0.1) 1px, transparent 0, transparent 15px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.1) 0, rgba(255,255,255,0.1) 1px, transparent 0, transparent 15px); }
+    .penalty-grid { position: absolute; top: 10px; left: 10px; right: 10px; bottom: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; }
+    .p-cell { border: 1px dashed rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+    .ball { width: 30px; height: 30px; background: white; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: ballHit 0.5s; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="white"/><path d="M50 2 A48 48 0 0 1 50 98" fill="rgba(0,0,0,0.1)"/><circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="5"/></svg>'); }
+    
+    .coin-scene { height: 200px; perspective: 1000px; display: flex; align-items: center; justify-content: center; }
+    .coin { width: 150px; height: 150px; position: relative; transform-style: preserve-3d; transform: rotateY(0deg); }
+    .side { position: absolute; width: 100%; height: 100%; border-radius: 50%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border: 6px solid #fbbf24; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    .heads { background: #104e8b; transform: rotateY(0deg); flex-direction: column; }
+    .tails { background: radial-gradient(circle, #fcd34d, #d97706); transform: rotateY(180deg); color: #78350f; font-size: 60px; font-weight: 900; }
+    .coin-text { font-style: italic; font-weight: 900; font-size: 26px; }
+
+    /* INSTRUCTIONS & NAV */
+    .guide-box { background: var(--panel-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-bottom: 15px; }
+    .code-bg { 
+        background: rgba(245, 59, 123, 0.15); padding: 25px; border-radius: 15px; border: 2px dashed var(--pink-1win); 
+        color: var(--pink-1win); font-family: monospace; font-size: 32px; font-weight: 900; text-align: center; margin: 15px 0; letter-spacing: 3px; text-shadow: 0 0 10px rgba(245, 59, 123, 0.4);
+    }
+    .nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(28, 40, 61, 0.95); backdrop-filter: blur(15px); padding: 10px 20px; border-radius: 30px; display: flex; gap: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; width: 90%; max-width: 400px; justify-content: space-between; }
+    .nav-item { color: var(--text-gray); font-size: 9px; font-weight: 700; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; flex: 1; }
+    .nav-item svg { width: 22px; height: 22px; margin-bottom: 5px; stroke-width: 2; }
+    .nav-item.active { color: var(--blue-1win); }
+    .nav-item.active svg { stroke: var(--blue-1win); filter: drop-shadow(0 0 5px var(--blue-1win)); }
+
+    /* АДМИН ПАНЕЛЬ СТИЛИ */
+    .admin-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .admin-stat-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+    .admin-stat-value { font-size: 24px; font-weight: 900; margin-bottom: 5px; }
+    .admin-stat-label { font-size: 10px; color: var(--text-gray); }
+    
+    .admin-textarea {
+        width: 100%; min-height: 120px; background: rgba(0,0,0,0.3); border: 1px solid #333;
+        border-radius: 10px; padding: 12px; color: white; font-family: 'Montserrat', sans-serif;
+        margin-bottom: 15px; resize: vertical; font-size: 14px;
+    }
+    
+    .admin-users-table {
+        width: 100%; border-collapse: collapse; font-size: 10px;
+        margin-top: 10px;
+    }
+    .admin-users-table th {
+        background: rgba(0,0,0,0.3); padding: 8px; text-align: left;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        color: var(--blue-1win); font-weight: 700;
+    }
+    .admin-users-table td {
+        padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .user-status-active { color: #10b981; }
+    .user-status-inactive { color: #ef4444; }
+    
+    .admin-image-upload { margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; }
+    .admin-image-preview { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; border: 2px solid var(--blue-1win); }
+    .admin-image-controls { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+    .admin-file-input { flex: 1; font-size: 12px; }
+    
+    .export-btn {
+        background: linear-gradient(90deg, #10b981, #059669); color: white; border: none;
+        padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 12px;
+        cursor: pointer; margin-top: 10px; display: inline-flex; align-items: center; gap: 8px;
+    }
+    
+    .search-input {
+        width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid #333;
+        border-radius: 10px; color: white; margin-bottom: 15px; font-size: 14px;
+    }
+
+    @keyframes popStar { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes dropFloor { from { transform: translateY(-100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes flyStars { 0% { transform: translateY(0); } 100% { transform: translateY(50%); } }
+    @keyframes trailPulse { 0% { transform: scaleX(0.8); opacity: 0.7; } 100% { transform: scaleX(1.2); opacity: 1; } }
+    @keyframes ballHit { 0% { transform: scale(3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="bg-logos"></div>
+
+<div class="header">
+    <div class="logo">1WIN <span>SIGNALS</span></div>
+</div>
+
+<!-- 1. СТАРТОВОЕ ОКНО -->
+<div id="start-warning-modal" class="modal-overlay">
+    <div class="modal-box" style="border-color: var(--pink-1win);">
+        <div class="warning-big">⚠️ ВАЖНО!</div>
+        <p class="warning-desc">
+            Если аккаунт зарегистрирован не по ссылке ниже или без промокода, <span style="color:var(--pink-1win); font-weight:bold;">БОТ БУДЕТ ВЫДАВАТЬ ОШИБКИ!</span>
+        </p>
+        
+        <a href="https://lkhv.cc/94eec9" target="_blank" style="display: block; background: #0f192b; color: white; text-align: center; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 700; border: 1px solid #333; margin-bottom: 10px;">
+            🔗 Ссылка 1WIN
+        </a>
+        <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; font-family: monospace; letter-spacing: 2px; color: var(--blue-1win); font-weight: 900; margin-bottom: 15px; border: 1px dashed var(--blue-1win);">
+            Sawz500
+        </div>
+
+        <div class="checkbox-container">
+            <input type="checkbox" id="reg-check" class="custom-checkbox" onchange="checkAgreement()">
+            <label for="reg-check" class="checkbox-label">Я зарегистрировался по ссылке и ввел промокод</label>
+        </div>
+
+        <button id="btn-start-confirm" class="modal-btn btn-start-disabled" disabled onclick="closeStartWarning()">ПРОДОЛЖИТЬ</button>
+    </div>
+</div>
+
+<!-- 2. МОДАЛЬНОЕ ОКНО ДЛЯ СМЕНЫ ID -->
+<div id="confirm-modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">СМЕНА ID</div>
+        <p class="modal-desc">Вы действительно хотите изменить ID?<br>Текущая сессия будет сброшена.</p>
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" onclick="closeModal()">ОТМЕНА</button>
+            <button class="modal-btn btn-confirm" onclick="confirmChangeId()">ДА, СМЕНИТЬ</button>
+        </div>
+    </div>
+</div>
+
+<div class="screens-container">
+
+    <!-- 3. ЭКРАН ВВОДА ID -->
+    <div id="screen-start" class="screen active">
+        <div style="margin-top: 20px;">
+            <div class="guide-box" style="border-left: 4px solid var(--blue-1win);">
+                <div style="font-size: 14px; font-weight: 700; margin-bottom: 5px;">Введите ваш ID</div>
+                <p style="font-size: 12px; color: var(--text-gray);">
+                    Убедитесь, что вы выполнили условия регистрации.
+                </p>
+            </div>
+
+            <div class="id-section">
+                <div class="id-label">ВАШ ID C 1WIN</div>
+                <input type="tel" id="userIdInput" class="id-input" placeholder="00000000" maxlength="13">
+                <div style="font-size: 10px; color: #666; margin-top: 5px;">Только цифры.</div>
+            </div>
+
+            <button class="main-btn" onclick="completeStart()">ВОЙТИ В СИСТЕМУ</button>
+        </div>
+    </div>
+
+    <!-- 4. МЕНЮ ИГР -->
+    <div id="screen-home" class="screen">
+        <div class="games-grid">
+            <div class="game-card" onclick="openGame('mines')">
+                <div class="g-icon">💣</div><div class="g-title">МИНЫ</div>
+            </div>
+            <div class="game-card" onclick="openGame('lucky')">
+                <div class="g-icon">🚀</div><div class="g-title">ЛАКИ ДЖЕТ</div>
+            </div>
+            <div class="game-card" onclick="openGame('penalty')">
+                <div class="g-icon">⚽</div><div class="g-title">ПЕНАЛЬТИ</div>
+            </div>
+            <div class="game-card" onclick="openGame('coin')">
+                <div class="g-icon">🪙</div><div class="g-title">ОРЕЛ И РЕШКА</div>
+            </div>
+            <div class="game-card" onclick="openGame('tower')">
+                <div class="g-icon">🏢</div><div class="g-title">TOWER RUSH</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. ПРОФИЛЬ -->
+    <div id="screen-profile" class="screen">
+        <div class="game-ui" style="text-align: center;">
+            <div style="width: 80px; height: 80px; background: var(--blue-1win); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
+            <h2 id="uName">Игрок</h2>
+            
+            <div style="font-size: 16px; color: var(--blue-1win); margin-top: 5px; font-family: monospace; background: rgba(0,0,0,0.3); display: inline-flex; align-items: center; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--blue-1win);">
+                ID: <span id="uId" style="margin-right: 10px;">...</span>
+                <button class="change-id-btn" onclick="openModal()">Изменить</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px;">
+                    <div style="font-size: 24px; font-weight: 900; color: var(--pink-1win);" id="sigCount">0</div>
+                    <div style="font-size: 10px; color: var(--text-gray);">СИГНАЛЫ</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px;">
+                    <div style="font-size: 24px; font-weight: 900; color: #10b981;">VIP</div>
+                    <div style="font-size: 10px; color: var(--text-gray);">СТАТУС</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. ИНСТРУКЦИЯ -->
+    <div id="screen-instructions" class="screen">
+        <div style="margin-top: 20px;">
+            <div class="guide-box">
+                <p style="font-size: 13px; color: var(--pink-1win); font-weight: bold; text-align: center; margin-bottom: 15px;">
+                    ⚠️ ВАЖНО: Если аккаунт зарегистрирован не по ссылке ниже или без промокода, бот будет выдавать ошибочные прогнозы.
+                </p>
+                <p style="font-size: 13px; color: var(--text-gray); line-height: 1.5;">
+                    Официальная ссылка для корректной работы:
+                </p>
+                <a href="https://lkhv.cc/94eec9" target="_blank" style="display: block; background: #0f192b; color: var(--blue-1win); text-align: center; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 700; margin-top: 10px; border: 1px solid #333;">
+                    https://lkhv.cc/94eec9
+                </a>
+            </div>
+            <div class="guide-box">
+                <p style="font-size: 13px; color: var(--text-gray);">Промокод:</p>
+                <div class="code-bg">Sawz500</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. АДМИН ПАНЕЛЬ -->
+    <div id="screen-admin" class="screen">
+        <div style="margin-top: 20px;">
+            <h2 style="text-align: center; margin-bottom: 20px; color: var(--pink-1win); font-style: italic;">АДМИН ПАНЕЛЬ</h2>
+            
+            <!-- Статистика -->
+            <div class="guide-box">
+                <h3 style="margin-bottom: 15px; color: var(--blue-1win);">📊 СТАТИСТИКА</h3>
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-box">
+                        <div class="admin-stat-value" id="adminTotalSignals">0</div>
+                        <div class="admin-stat-label">Всего сигналов</div>
+                    </div>
+                    <div class="admin-stat-box">
+                        <div class="admin-stat-value" id="adminActiveUsers">0</div>
+                        <div class="admin-stat-label">Активных пользователей</div>
+                    </div>
+                    <div class="admin-stat-box">
+                        <div class="admin-stat-value" id="adminTodaySignals">0</div>
+                        <div class="admin-stat-label">За сегодня</div>
+                    </div>
+                </div>
+                <button class="export-btn" onclick="exportStatsCSV()">
+                    📥 Экспорт в CSV
+                </button>
+            </div>
+
+            <!-- Рассылка -->
+            <div class="guide-box">
+                <h3 style="margin-bottom: 15px; color: var(--blue-1win);">📢 РАССЫЛКА</h3>
+                <textarea id="adminBroadcastMessage" class="admin-textarea" placeholder="Введите сообщение для рассылки..."></textarea>
+                <div style="font-size: 11px; color: var(--text-gray); margin-bottom: 10px;">
+                    Макс. 1 сообщение в 5 минут
+                </div>
+                <button class="main-btn" onclick="adminSendBroadcast()">ОТПРАВИТЬ ВСЕМ ПОЛЬЗОВАТЕЛЯМ</button>
+                <div id="adminBroadcastStatus" style="font-size: 12px; margin-top: 10px; color: var(--text-gray);"></div>
+            </div>
+
+            <!-- Пользователи -->
+            <div class="guide-box">
+                <h3 style="margin-bottom: 15px; color: var(--blue-1win);">👥 ПОЛЬЗОВАТЕЛИ</h3>
+                <input type="text" id="adminUserSearch" class="search-input" placeholder="Поиск по ID..." onkeyup="adminSearchUsers()">
+                <div style="overflow-x: auto;">
+                    <table class="admin-users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Сигналы</th>
+                                <th>Первый вход</th>
+                                <th>Последний вход</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersList">
+                            <!-- Данные будут заполнены через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Изображения игр -->
+            <div class="guide-box">
+                <h3 style="margin-bottom: 15px; color: var(--blue-1win);">🖼️ ИЗОБРАЖЕНИЯ ИГР</h3>
+                
+                <!-- Мины -->
+                <div class="admin-image-upload">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: white;">💣 Мины</div>
+                    <div class="admin-image-controls">
+                        <img id="preview-mines" class="admin-image-preview" src="" alt="Превью" style="display: none;">
+                        <input type="file" id="upload-mines" class="admin-file-input" accept="image/png, image/jpeg" onchange="adminUploadImage('mines', this)">
+                        <button class="main-btn" style="padding: 8px 15px; font-size: 12px;" onclick="adminSaveImage('mines')">ОБНОВИТЬ</button>
+                    </div>
+                </div>
+
+                <!-- Lucky Jet -->
+                <div class="admin-image-upload">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: white;">🚀 Lucky Jet</div>
+                    <div class="admin-image-controls">
+                        <img id="preview-lucky" class="admin-image-preview" src="" alt="Превью" style="display: none;">
+                        <input type="file" id="upload-lucky" class="admin-file-input" accept="image/png, image/jpeg" onchange="adminUploadImage('lucky', this)">
+                        <button class="main-btn" style="padding: 8px 15px; font-size: 12px;" onclick="adminSaveImage('lucky')">ОБНОВИТЬ</button>
+                    </div>
+                </div>
+
+                <!-- Пенальти -->
+                <div class="admin-image-upload">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: white;">⚽ Пенальти</div>
+                    <div class="admin-image-controls">
+                        <img id="preview-penalty" class="admin-image-preview" src="" alt="Превью" style="display: none;">
+                        <input type="file" id="upload-penalty" class="admin-file-input" accept="image/png, image/jpeg" onchange="adminUploadImage('penalty', this)">
+                        <button class="main-btn" style="padding: 8px 15px; font-size: 12px;" onclick="adminSaveImage('penalty')">ОБНОВИТЬ</button>
+                    </div>
+                </div>
+
+                <!-- Орел и Решка -->
+                <div class="admin-image-upload">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: white;">🪙 Орел и Решка</div>
+                    <div class="admin-image-controls">
+                        <img id="preview-coin" class="admin-image-preview" src="" alt="Превью" style="display: none;">
+                        <input type="file" id="upload-coin" class="admin-file-input" accept="image/png, image/jpeg" onchange="adminUploadImage('coin', this)">
+                        <button class="main-btn" style="padding: 8px 15px; font-size: 12px;" onclick="adminSaveImage('coin')">ОБНОВИТЬ</button>
+                    </div>
+                </div>
+
+                <!-- Tower Rush -->
+                <div class="admin-image-upload">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: white;">🏢 Tower Rush</div>
+                    <div class="admin-image-controls">
+                        <img id="preview-tower" class="admin-image-preview" src="" alt="Превью" style="display: none;">
+                        <input type="file" id="upload-tower" class="admin-file-input" accept="image/png, image/jpeg" onchange="adminUploadImage('tower', this)">
+                        <button class="main-btn" style="padding: 8px 15px; font-size: 12px;" onclick="adminSaveImage('tower')">ОБНОВИТЬ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="main-btn" onclick="goHome()">← В МЕНЮ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ИГРА: МИНЫ -->
+    <div id="game-mines" class="screen">
+        <div class="game-ui">
+            <div class="mines-options">
+                <button class="mine-btn" onclick="setMines(1, this)">1</button>
+                <button class="mine-btn active" onclick="setMines(3, this)">3</button>
+                <button class="mine-btn" onclick="setMines(5, this)">5</button>
+                <button class="mine-btn" onclick="setMines(7, this)">7</button>
+            </div>
+            <div class="mines-wrapper" id="minesGrid"></div>
+            <div class="status-text" id="minesStatus">Нажми кнопку для сигнала</div>
+            <div class="loader-container" id="loaderMines"><div class="spinner"></div></div>
+            <button class="main-btn" id="btnMines" onclick="runMines()">ПОЛУЧИТЬ СИГНАЛ</button>
+            <div style="text-align: center; margin-top: 15px; font-size: 12px; opacity: 0.5; cursor: pointer;" onclick="goHome()">← В МЕНЮ</div>
+        </div>
+    </div>
+
+    <!-- ИГРА: ЛАКИ ДЖЕТ -->
+    <div id="game-lucky" class="screen">
+        <div class="game-ui">
+            <div class="lucky-wrapper">
+                <div class="star-field"></div>
+                <div class="jet-container" id="jetCont">
+                    <div class="jet-trail"></div>
+                    <div class="joe">🚀</div>
+                </div>
+                <div class="multiplier" id="luckyNum">x1.00</div>
+            </div>
+            <div class="status-text" id="luckyStatus">Ожидание...</div>
+            <div class="loader-container" id="loaderLucky"><div class="spinner"></div></div>
+            <button class="main-btn" id="btnLucky" onclick="runLucky()">ПОЛУЧИТЬ СИГНАЛ</button>
+            <div style="text-align: center; margin-top: 15px; font-size: 12px; opacity: 0.5; cursor: pointer;" onclick="goHome()">← В МЕНЮ</div>
+        </div>
+    </div>
+
+    <!-- ИГРА: ПЕНАЛЬТИ -->
+    <div id="game-penalty" class="screen">
+        <div class="game-ui">
+            <div class="penalty-wrapper">
+                <div class="net"></div>
+                <div class="penalty-grid" id="penGrid"></div>
+            </div>
+            <div class="status-text" id="penStatus">Выбери ячейку для удара</div>
+            <div class="loader-container" id="loaderPen"><div class="spinner"></div></div>
+            <button class="main-btn" id="btnPen" onclick="runPenalty()">ПОЛУЧИТЬ СИГНАЛ</button>
+            <div style="text-align: center; margin-top: 15px; font-size: 12px; opacity: 0.5; cursor: pointer;" onclick="goHome()">← В МЕНЮ</div>
+        </div>
+    </div>
+
+    <!-- ИГРА: КОИН ФЛИП -->
+    <div id="game-coin" class="screen">
+        <div class="game-ui">
+            <div class="coin-scene">
+                <div class="coin" id="theCoin">
+                    <div class="side heads"><div class="coin-text">1win</div></div>
+                    <div class="side tails">1</div>
+                </div>
+            </div>
+            <div class="status-text" id="coinStatus" style="font-size: 18px; font-weight: bold; margin-top: 20px;">-</div>
+            <div class="loader-container" id="loaderCoin"><div class="spinner"></div></div>
+            <button class="main-btn" id="btnCoin" onclick="runCoin()">ПОЛУЧИТЬ СИГНАЛ</button>
+            <div style="text-align: center; margin-top: 15px; font-size: 12px; opacity: 0.5; cursor: pointer;" onclick="goHome()">← В МЕНЮ</div>
+        </div>
+    </div>
+
+    <!-- ИГРА: TOWER RUSH -->
+    <div id="game-tower" class="screen">
+        <div class="game-ui">
+            <div class="tower-wrapper" id="towerWrap">
+                <div class="tower-result" id="towerNum">0</div>
+                <div class="tower-ground"></div>
+            </div>
+            <div class="status-text" id="towerStatus">Нажми для прогноза этажей</div>
+            <div class="loader-container" id="loaderTower"><div class="spinner"></div></div>
+            <button class="main-btn" id="btnTower" onclick="runTower()">ПОЛУЧИТЬ СИГНАЛ</button>
+            <div style="text-align: center; margin-top: 15px; font-size: 12px; opacity: 0.5; cursor: pointer;" onclick="goHome()">← В МЕНЮ</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- НАВИГАЦИЯ -->
+<div class="nav" id="navBar" style="display: none;">
+    <div class="nav-item active" onclick="navTo('screen-home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        <span>Игры</span>
+    </div>
+    <div class="nav-item" onclick="navTo('screen-profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Профиль</span>
+    </div>
+    <div class="nav-item" onclick="navTo('screen-instructions')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        <span>Инструкция</span>
+    </div>
+    <div class="nav-item" id="nav-admin-item" style="display: none;" onclick="navTo('screen-admin')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/></svg>
+        <span>Админ</span>
+    </div>
+</div>
+
+<script>
+    // --- TELEGRAM INIT & USER ID LOGIC ---
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        window.Telegram.WebApp.setHeaderColor('#0f192b'); 
+        window.Telegram.WebApp.setBackgroundColor('#0f192b');
+    }
+
+    let tgUserId = 'guest';
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+        tgUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
+    }
+
+    const KEY_VER = `v7_ver_${tgUserId}`;
+    const KEY_ID = `v7_id_${tgUserId}`;
+    const KEY_SIG = `v7_sig_${tgUserId}`;
+
+    const ADMIN_ID = '343780993';
+    const BOT_TOKEN = '7371108309:AAGBXhLnkFvG309_u-hmFRDuAtummhcS1Zo';
+
+    const APP = {
+        verified: localStorage.getItem(KEY_VER) === 'true',
+        id: localStorage.getItem(KEY_ID) || null, 
+        name: (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) 
+              ? window.Telegram.WebApp.initDataUnsafe.user.first_name 
+              : 'Player',
+        signals: parseInt(localStorage.getItem(KEY_SIG) || '0'),
+        currentMines: 3,
+        isAdmin: false
+    };
+
+    // --- ADMIN DATA KEYS ---
+    const ADMIN_TOTAL_SIGNALS = 'admin_total_signals';
+    const ADMIN_USERS_LIST = 'admin_users_list';
+    const ADMIN_LAST_MESSAGE = 'admin_last_message';
+    const ADMIN_IMAGES_PREFIX = 'admin_images_';
+    const ADMIN_LAST_BROADCAST = 'admin_last_broadcast';
+
+    // --- INIT ---
+    window.onload = () => {
+        initMinesGrid();
+        initPenaltyGrid();
+        
+        // Проверка на администратора
+        if (APP.id === ADMIN_ID) {
+            APP.isAdmin = true;
+            document.getElementById('nav-admin-item').style.display = 'flex';
+        }
+        
+        if(!APP.verified || !APP.id) {
+            showScreen('screen-start');
+            document.getElementById('start-warning-modal').style.display = 'flex';
+        } else {
+            // Сохраняем пользователя в список
+            saveUserToAdminList();
+            updateProfile();
+            showScreen('screen-home');
+            document.getElementById('navBar').style.display = 'flex';
+        }
+        
+        // Загружаем изображения игр
+        loadGameImages();
+    };
+    
+    // --- ADMIN FUNCTIONS ---
+    
+    function saveUserToAdminList() {
+        let users = JSON.parse(localStorage.getItem(ADMIN_USERS_LIST) || '[]');
+        const now = new Date().toISOString();
+        const today = new Date().toDateString();
+        
+        const existingUserIndex = users.findIndex(u => u.id === APP.id);
+        
+        if (existingUserIndex !== -1) {
+            // Обновляем существующего пользователя
+            users[existingUserIndex].lastSeen = now;
+            users[existingUserIndex].signals = APP.signals;
+            users[existingUserIndex].lastActiveDay = today;
+            users[existingUserIndex].isActive = true;
+        } else {
+            // Добавляем нового пользователя
+            users.push({
+                id: APP.id,
+                name: APP.name,
+                signals: APP.signals,
+                firstSeen: now,
+                lastSeen: now,
+                lastActiveDay: today,
+                isActive: true,
+                telegramId: tgUserId !== 'guest' ? tgUserId : null
+            });
+        }
+        
+        localStorage.setItem(ADMIN_USERS_LIST, JSON.stringify(users));
+        
+        // Обновляем общее количество сигналов
+        updateTotalSignals();
+    }
+    
+    function updateTotalSignals() {
+        let total = parseInt(localStorage.getItem(ADMIN_TOTAL_SIGNALS) || '0');
+        total = Math.max(total, APP.signals); // Берем максимальное значение
+        localStorage.setItem(ADMIN_TOTAL_SIGNALS, total.toString());
+    }
+    
+    function adminLoadStats() {
+        const users = JSON.parse(localStorage.getItem(ADMIN_USERS_LIST) || '[]');
+        const today = new Date().toDateString();
+        
+        // Общее количество сигналов
+        const totalSignals = users.reduce((sum, user) => sum + (user.signals || 0), 0);
+        
+        // Активные пользователи (были сегодня)
+        const activeUsers = users.filter(u => u.lastActiveDay === today).length;
+        
+        // Сигналы за сегодня
+        const todaySignals = users.reduce((sum, user) => {
+            return user.lastActiveDay === today ? sum + (user.signals || 0) : sum;
+        }, 0);
+        
+        document.getElementById('adminTotalSignals').textContent = totalSignals;
+        document.getElementById('adminActiveUsers').textContent = activeUsers;
+        document.getElementById('adminTodaySignals').textContent = todaySignals;
+        
+        // Обновляем список пользователей
+        adminRenderUsersList(users);
+    }
+    
+    function adminRenderUsersList(users) {
+        const tbody = document.getElementById('adminUsersList');
+        tbody.innerHTML = '';
+        
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            const lastSeenDate = new Date(user.lastSeen);
+            const firstSeenDate = new Date(user.firstSeen);
+            const today = new Date().toDateString();
+            const isActive = user.lastActiveDay === today;
+            
+            row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.signals || 0}</td>
+                <td>${firstSeenDate.toLocaleDateString()}</td>
+                <td>${lastSeenDate.toLocaleDateString()}</td>
+                <td class="${isActive ? 'user-status-active' : 'user-status-inactive'}">
+                    ${isActive ? 'Активен' : 'Неактивен'}
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    function adminSearchUsers() {
+        const searchTerm = document.getElementById('adminUserSearch').value.toLowerCase();
+        const users = JSON.parse(localStorage.getItem(ADMIN_USERS_LIST) || '[]');
+        
+        if (!searchTerm) {
+            adminRenderUsersList(users);
+            return;
+        }
+        
+        const filteredUsers = users.filter(user => 
+            user.id.toLowerCase().includes(searchTerm) || 
+            (user.name && user.name.toLowerCase().includes(searchTerm))
+        );
+        
+        adminRenderUsersList(filteredUsers);
+    }
+    
+    async function adminSendBroadcast() {
+        const message = document.getElementById('adminBroadcastMessage').value.trim();
+        const statusEl = document.getElementById('adminBroadcastStatus');
+        
+        if (!message) {
+            statusEl.textContent = 'Введите сообщение';
+            statusEl.style.color = '#f53b7b';
+            return;
+        }
+        
+        // Проверка частоты рассылки (1 раз в 5 минут)
+        const lastBroadcast = localStorage.getItem(ADMIN_LAST_BROADCAST);
+        if (lastBroadcast) {
+            const timeDiff = Date.now() - parseInt(lastBroadcast);
+            if (timeDiff < 5 * 60 * 1000) {
+                const minutesLeft = Math.ceil((5 * 60 * 1000 - timeDiff) / 60000);
+                statusEl.textContent = `Подождите ${minutesLeft} минут перед следующей рассылкой`;
+                statusEl.style.color = '#f53b7b';
+                return;
+            }
+        }
+        
+        const users = JSON.parse(localStorage.getItem(ADMIN_USERS_LIST) || '[]');
+        const telegramUsers = users.filter(u => u.telegramId);
+        
+        if (telegramUsers.length === 0) {
+            statusEl.textContent = 'Нет пользователей с Telegram ID';
+            statusEl.style.color = '#f53b7b';
+            return;
+        }
+        
+        statusEl.textContent = 'Отправка...';
+        statusEl.style.color = '#0099ff';
+        
+        let sent = 0;
+        let failed = 0;
+        
+        for (const user of telegramUsers) {
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: user.telegramId,
+                        text: `📢 Сообщение от администратора 1WIN SIGNALS:\n\n${message}`,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.ok) {
+                    sent++;
+                } else {
+                    failed++;
+                }
+                
+                // Задержка между сообщениями
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+                failed++;
+            }
+        }
+        
+        localStorage.setItem(ADMIN_LAST_BROADCAST, Date.now().toString());
+        localStorage.setItem(ADMIN_LAST_MESSAGE, message);
+        
+        statusEl.textContent = `Отправлено: ${sent}, Не удалось: ${failed}`;
+        statusEl.style.color = '#10b981';
+        
+        // Очищаем поле через 3 секунды
+        setTimeout(() => {
+            document.getElementById('adminBroadcastMessage').value = '';
+        }, 3000);
+    }
+    
+    function adminUploadImage(game, input) {
+        const file = input.files[0];
+        if (!file) return;
+        
+        // Валидация
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Максимальный размер файла 2MB');
+            input.value = '';
+            return;
+        }
+        
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            alert('Только JPG/PNG изображения');
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById(`preview-${game}`);
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            
+            // Сохраняем во временное хранилище
+            sessionStorage.setItem(`temp_image_${game}`, e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function adminSaveImage(game) {
+        const imageData = sessionStorage.getItem(`temp_image_${game}`);
+        if (!imageData) {
+            alert('Сначала загрузите изображение');
+            return;
+        }
+        
+        localStorage.setItem(`${ADMIN_IMAGES_PREFIX}${game}`, imageData);
+        alert(`Изображение для "${getGameName(game)}" сохранено`);
+        
+        // Обновляем иконки на всех клиентах
+        updateGameIcons();
+    }
+    
+    function getGameName(game) {
+        const names = {
+            'mines': 'Мины',
+            'lucky': 'Lucky Jet',
+            'penalty': 'Пенальти',
+            'coin': 'Орел и Решка',
+            'tower': 'Tower Rush'
+        };
+        return names[game] || game;
+    }
+    
+    function loadGameImages() {
+        const games = ['mines', 'lucky', 'penalty', 'coin', 'tower'];
+        games.forEach(game => {
+            const imageData = localStorage.getItem(`${ADMIN_IMAGES_PREFIX}${game}`);
+            if (imageData) {
+                const preview = document.getElementById(`preview-${game}`);
+                if (preview) {
+                    preview.src = imageData;
+                    preview.style.display = 'block';
+                }
+            }
+        });
+    }
+    
+    function updateGameIcons() {
+        // Эта функция будет обновлять иконки в реальном времени
+        // В текущей реализации иконки обновляются при загрузке страницы
+        console.log('Иконки игр обновлены');
+    }
+    
+    function exportStatsCSV() {
+        const users = JSON.parse(localStorage.getItem(ADMIN_USERS_LIST) || '[]');
+        
+        let csv = 'ID,Имя,Сигналы,Первый вход,Последний вход,Статус\n';
+        
+        users.forEach(user => {
+            const lastSeenDate = new Date(user.lastSeen);
+            const firstSeenDate = new Date(user.firstSeen);
+            const today = new Date().toDateString();
+            const isActive = user.lastActiveDay === today ? 'Активен' : 'Неактивен';
+            
+            csv += `${user.id},${user.name || ''},${user.signals || 0},"${firstSeenDate.toLocaleDateString()}","${lastSeenDate.toLocaleDateString()}",${isActive}\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `1win_stats_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+    
+    // --- LOGIC FOR START WARNING ---
+    function checkAgreement() {
+        const chk = document.getElementById('reg-check');
+        const btn = document.getElementById('btn-start-confirm');
+        if (chk.checked) {
+            btn.disabled = false;
+            btn.classList.remove('btn-start-disabled');
+            btn.classList.add('btn-start-active');
+        } else {
+            btn.disabled = true;
+            btn.classList.add('btn-start-disabled');
+            btn.classList.remove('btn-start-active');
+        }
+    }
+    
+    function closeStartWarning() {
+        document.getElementById('start-warning-modal').style.display = 'none';
+    }
+
+    // --- NAVIGATION ---
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        
+        if (id === 'screen-home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+        if (id === 'screen-profile') document.querySelectorAll('.nav-item')[1].classList.add('active');
+        if (id === 'screen-instructions') document.querySelectorAll('.nav-item')[2].classList.add('active');
+        if (id === 'screen-admin') {
+            document.getElementById('nav-admin-item').classList.add('active');
+            // Загружаем статистику при открытии админ-панели
+            adminLoadStats();
+        }
+    }
+    
+    function navTo(page) { 
+        if (page === 'screen-admin' && !APP.isAdmin) {
+            alert('Доступ запрещен');
+            return;
+        }
+        showScreen(page); 
+    }
+    
+    function openGame(game) { showScreen('game-' + game); }
+    function goHome() { showScreen('screen-home'); }
+    
+    // --- AUTHENTICATION ---
+    function completeStart() {
+        const input = document.getElementById('userIdInput');
+        const val = input.value.trim();
+        
+        const isValid = /^\d{5,13}$/.test(val);
+
+        if (!isValid) {
+            input.classList.add('error');
+            setTimeout(() => input.classList.remove('error'), 500);
+            if(window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+                window.Telegram.WebApp.showAlert("Ошибка! Введите корректный ID (только цифры, 5-13 символов).");
+            } else {
+                alert("Ошибка! Введите корректный ID (только цифры, 5-13 символов).");
+            }
+            return;
+        }
+
+        APP.verified = true;
+        APP.id = val;
+        
+        // Проверка на администратора
+        if (APP.id === ADMIN_ID) {
+            APP.isAdmin = true;
+            document.getElementById('nav-admin-item').style.display = 'flex';
+        }
+        
+        localStorage.setItem(KEY_VER, 'true');
+        localStorage.setItem(KEY_ID, APP.id);
+        
+        // Сохраняем пользователя в список
+        saveUserToAdminList();
+        
+        updateProfile();
+        document.getElementById('navBar').style.display = 'flex';
+        showScreen('screen-home');
+    }
+
+    // --- MODAL LOGIC ---
+    function openModal() {
+        document.getElementById('confirm-modal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('confirm-modal').style.display = 'none';
+    }
+
+    function confirmChangeId() {
+        closeModal();
+        localStorage.removeItem(KEY_VER);
+        localStorage.removeItem(KEY_ID);
+        APP.verified = false;
+        APP.id = null;
+        APP.isAdmin = false;
+        document.getElementById('navBar').style.display = 'none';
+        document.getElementById('nav-admin-item').style.display = 'none';
+        document.getElementById('userIdInput').value = '';
+        
+        document.getElementById('reg-check').checked = false;
+        checkAgreement(); 
+        
+        showScreen('screen-start');
+        document.getElementById('start-warning-modal').style.display = 'flex';
+    }
+
+    function updateProfile() {
+        document.getElementById('uName').innerText = APP.name;
+        document.getElementById('uId').innerText = APP.id || '???';
+        document.getElementById('sigCount').innerText = APP.signals;
+    }
+    
+    function addSignal() {
+        APP.signals++;
+        localStorage.setItem(KEY_SIG, APP.signals);
+        
+        // Обновляем статистику пользователя
+        saveUserToAdminList();
+        
+        updateProfile();
+    }
+    
+    function getRandomDelay() { return Math.floor(Math.random() * 4000) + 3000; }
+
+    function startLoading(btnId, loaderId, statusId) {
+        document.getElementById(btnId).style.display = 'none';
+        document.getElementById(loaderId).style.display = 'flex';
+        document.getElementById(statusId).innerText = 'ПОЛУЧЕНИЕ СИГНАЛА...';
+    }
+    function stopLoading(btnId, loaderId, statusId, msg) {
+        document.getElementById(loaderId).style.display = 'none';
+        document.getElementById(btnId).style.display = 'block';
+        document.getElementById(statusId).innerText = msg || 'Сигнал получен';
+    }
+
+    // --- GAMES LOGIC ---
+    function setMines(count, btn) {
+        APP.currentMines = count;
+        document.querySelectorAll('.mine-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        resetMinesGrid();
+    }
+    function resetMinesGrid() {
+        document.querySelectorAll('.mine-cell').forEach(c => { c.className = 'mine-cell'; c.innerHTML = ''; });
+    }
+    function initMinesGrid() {
+        const grid = document.getElementById('minesGrid');
+        grid.innerHTML = ''; for(let i=0; i<25; i++) grid.innerHTML += `<div class="mine-cell" id="m-${i}"></div>`;
+    }
+    function runMines() {
+        startLoading('btnMines', 'loaderMines', 'minesStatus');
+        resetMinesGrid();
+        setTimeout(() => {
+            let safeCount = 4;
+            if (APP.currentMines === 1) safeCount = 6;
+            if (APP.currentMines === 5) safeCount = 3;
+            if (APP.currentMines === 7) safeCount = 2;
+            const safeSpots = new Set();
+            while(safeSpots.size < safeCount) safeSpots.add(Math.floor(Math.random() * 25));
+            const spots = Array.from(safeSpots);
+            let i = 0;
+            const reveal = setInterval(() => {
+                const cell = document.getElementById(`m-${spots[i]}`);
+                cell.classList.add('safe'); cell.innerHTML = '<div class="star-icon">⭐</div>';
+                i++;
+                if(i >= spots.length) { clearInterval(reveal); stopLoading('btnMines', 'loaderMines', 'minesStatus'); addSignal(); }
+            }, 300);
+        }, getRandomDelay());
+    }
+
+    function runLucky() {
+        startLoading('btnLucky', 'loaderLucky', 'luckyStatus');
+        const jet = document.getElementById('jetCont'); const num = document.getElementById('luckyNum');
+        jet.style.transition = 'none'; jet.style.left = '20px'; jet.style.bottom = '20px';
+        num.innerText = 'x1.00'; num.style.color = 'white';
+        setTimeout(() => {
+            jet.style.transition = 'all 2s ease-out'; jet.style.left = '60%'; jet.style.bottom = '120px';
+            let current = 1.00; let target; const r = Math.random();
+            if(r < 0.6) target = (Math.random() * (1.9 - 1.2) + 1.2).toFixed(2);
+            else if (r < 0.85) target = (Math.random() * (3.5 - 2.0) + 2.0).toFixed(2);
+            else target = (Math.random() * (12.0 - 5.0) + 5.0).toFixed(2);
+            const timer = setInterval(() => {
+                current += 0.03;
+                if(current >= target) {
+                    current = target; clearInterval(timer);
+                    stopLoading('btnLucky', 'loaderLucky', 'luckyStatus');
+                    if(target < 2) num.style.color = '#0099ff'; else if(target < 5) num.style.color = '#f53b7b'; else num.style.color = '#f59e0b';
+                    addSignal();
+                }
+                num.innerText = 'x' + parseFloat(current).toFixed(2);
+            }, 20);
+        }, getRandomDelay());
+    }
+
+    function initPenaltyGrid() {
+        const grid = document.getElementById('penGrid');
+        grid.innerHTML = ''; for(let i=0; i<15; i++) grid.innerHTML += `<div class="p-cell" id="p-${i}"></div>`;
+    }
+    function runPenalty() {
+        startLoading('btnPen', 'loaderPen', 'penStatus');
+        document.querySelectorAll('.p-cell').forEach(c => c.innerHTML = '');
+        setTimeout(() => {
+            const corners = [0, 4, 10, 14, 2, 12];
+            const target = corners[Math.floor(Math.random() * corners.length)];
+            const cell = document.getElementById(`p-${target}`);
+            cell.innerHTML = '<div class="ball"></div>';
+            stopLoading('btnPen', 'loaderPen', 'penStatus', 'Бей в эту зону');
+            addSignal();
+        }, getRandomDelay());
+    }
+
+    let totalRot = 0;
+    function runCoin() {
+        const status = document.getElementById('coinStatus'); const coin = document.getElementById('theCoin');
+        startLoading('btnCoin', 'loaderCoin', 'coinStatus');
+        status.style.color = "white";
+        setTimeout(() => {
+            document.getElementById('loaderCoin').style.display = 'none';
+            status.innerText = 'ВРАЩЕНИЕ...';
+            const isHeads = Math.random() > 0.5;
+            let nextRot = totalRot + 1800; 
+            const remainder = nextRot % 360;
+            if (isHeads) nextRot += (360 - remainder); else nextRot += (180 - remainder) + 360; 
+            totalRot = nextRot;
+            coin.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.2, 1.1)';
+            coin.style.transform = `rotateY(${totalRot}deg)`;
+            setTimeout(() => {
+                document.getElementById('btnCoin').style.display = 'block';
+                addSignal();
+                if(isHeads) { status.innerText = "1WIN (ОРЁЛ)"; status.style.color = "var(--blue-1win)"; } 
+                else { status.innerText = "РЕШКА"; status.style.color = "#f59e0b"; }
+            }, 3000);
+        }, getRandomDelay());
+    }
+
+    function runTower() {
+        startLoading('btnTower', 'loaderTower', 'towerStatus');
+        const container = document.getElementById('towerWrap');
+        const resultNum = document.getElementById('towerNum');
+        
+        const oldFloors = container.querySelectorAll('.tower-floor, .tower-roof');
+        oldFloors.forEach(f => f.remove());
+        resultNum.style.display = 'none';
+
+        setTimeout(() => {
+            const floorsCount = Math.floor(Math.random() * (20 - 3 + 1)) + 3;
+            document.getElementById('loaderTower').style.display = 'none';
+            document.getElementById('towerStatus').innerText = 'СТРОИТЕЛЬСТВО...';
+            
+            let current = 0;
+            const buildInterval = setInterval(() => {
+                const floor = document.createElement('div');
+                floor.className = 'tower-floor';
+                const styles = ['style-concrete', 'style-brick', 'style-tech'];
+                floor.classList.add(styles[Math.floor(Math.random() * styles.length)]);
+
+                const winDiv = document.createElement('div');
+                winDiv.className = 'windows';
+                for(let k=0; k<4; k++) {
+                    const w = document.createElement('div'); w.className = 'win';
+                    if(Math.random() > 0.3) w.classList.add('lit');
+                    winDiv.appendChild(w);
+                }
+                floor.appendChild(winDiv);
+                container.appendChild(floor);
+                
+                current++;
+                if (current >= floorsCount) {
+                    clearInterval(buildInterval);
+                    const roof = document.createElement('div'); roof.className = 'tower-roof';
+                    container.appendChild(roof);
+                    resultNum.innerText = floorsCount; resultNum.style.display = 'block';
+                    document.getElementById('btnTower').style.display = 'block';
+                    document.getElementById('towerStatus').innerText = 'Безопасно этажей: ' + floorsCount;
+                    addSignal();
+                }
+            }, 150);
+        }, getRandomDelay());
+    }
+</script>
+</body>
+</html>
